@@ -30,11 +30,24 @@ addr1 nvarchar(4000) ,
 addr2 nvarchar(4000) ,
 email varchar (50),
 zipcode varchar(6),
+identity varchar(12) unique key
 foreign key (rolekey) references role(rolekey) 
 ) CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 drop table person
-
-
+alter table person add identity varchar(12)
+-- GET PERSONID
+delimiter $$
+create or replace function get_perid(iden varchar(12))
+returns varchar(36)
+begin
+	declare perid varchar(36);
+	select personid into @perid from person where identity =iden;
+	return(@perid);
+end;
+$$
+select * from person;
+select get_perid('092099004996');
+select personid from person where identity = '092099004996'
 delimiter $$
 	create or replace procedure add_person( b nvarchar(50), c date, d varchar(1), e tinyint, f date, phoneno varchar(11), address1 nvarchar(4000), mail varchar(50),zip varchar(10))
 	begin
@@ -174,14 +187,40 @@ personid varchar(36) references person(personid),
 workplace varchar(100),
 payrate decimal(4,2)
 );
-
+-- GET EMPLOYID
+delimiter$$
+create or replace function get_employid(perid varchar(36) )
+returns varchar(36)
+begin
+	declare eid varchar(36);
+	select employid into eid from employee where personid = perid;
+	return eid;
+	end;
+$$
+select get_employid (get_perid('092099004996'))
 delimiter $$
-create or replace procedure add_employ(a varchar(36),b varchar(36),c varchar(36),d varchar(100) , e decimal(4,2))
+create or replace procedure add_employ(b varchar(36),c varchar(36),d varchar(100) , e decimal(4,2))
 	begin
-		insert into employee(employid,accountid,personid,workplace,payrate) values (a,b,c,d,e);
+		insert into employee(employid,accountid,personid,workplace,payrate) values (uuid(),b,c,d,e);
 	end;
 $$
 
+call add_employ(get_accid('sonb1706997'),get_perid('092099004996'),'So 65 B3',1.6);
+delimiter $$
+create or replace procedure pay(eid varchar(36) )
+begin
+start transaction;
+	select payrate  into @prate from employee where employid = eid;
+    select accountid into @accid from employee where employid = eid;
+	select balance into @b from account where accountid = @accid ;
+	set @am = 1390000*@prate;
+	set  @newbalance = @b + @am;
+	update account set balance = @newbalance where accountid = @accid ;
+	call add_trans_log(@accid, @accid, 'P' , @accid,@b,@am,@newbalance,null,now() );
+commit;
+end;
+$$
+call pay(get_employid(get_perid('092099004996')));
 delimiter $$
 create or replace procedure del_employ(a varchar(36))
 begin
@@ -351,3 +390,21 @@ $$
 	set @a = null;
 	call transfer(get_accid('sonb1706997'),get_accid('son2'),100000,@a);
 	select @a;
+delimiter$$
+create procedure interest(accid varchar(36))
+begin
+start transaction;
+	-- GET USER BALANCE
+	select balance into @curbalance from account where accountid= accid;
+	-- ADD INTEREST
+	select acckey into @keyy from account where accountid = accid;
+	select rate into @rate from acctype where acckey = @keyy;
+	
+	set @am = @curbalance * @rate;
+	set @newbalance = @curbalance + @am;
+	update account set balance = @newbalance where accountid = accid;
+	call add_trans_log(accid,accid,'I',null,@curbalance,@am,@newbalance,null,now());
+	commit;
+end;
+$$
+call interest(get_accid('sonb1706997'))
