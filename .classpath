@@ -4,5 +4,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="sqljdbc4-3.0.jar"/>
 	<classpathentry kind="lib" path="C:/Users/PC-ASUS/Desktop/BlankSpace/Study/ImportantProject/MonThayAnProject/sqljdbc4-3.0.jar"/>
+	<classpathentry kind="lib" path="C:/Users/PC-ASUS/Desktop/BlankSpace/Study/ImportantProject/MonThayAnProject/mysql-connector-java-8.0.18/mysql-connector-java-8.0.18.jar"/>
+	<classpathentry kind="lib" path="C:/Users/PC-ASUS/Desktop/BlankSpace/Study/ImportantProject/MonThayAnProject/rs2xml.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
